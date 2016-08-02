@@ -27,3 +27,6 @@
 *.exe
 *.out
 *.app
+
+cld3_cli
+cld3_cli.dSYM

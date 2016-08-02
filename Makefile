@@ -1,15 +1,16 @@
 OBJS = cld3_cli.o
 CC = g++
 DEBUG = -g
-INC = -I${THIRD_PARTY}
-CFLAGS = -Wall -Werror -std=c++14 -lstdc++fs -c $(DEBUG) $(INC)
-LFLAGS = -Wall -Werror -std=c++14 -lstdc++fs  $(DEBUG) $(INC)
+INC = -I${THIRD_PARTY} -I${JSONCONS} -I${PROTOBUF}
+CXXFLAGS = -Wall -Werror -std=c++14 -lstdc++fs -c $(DEBUG) $(INC) -L${THIRD_PARTY} -L${PROTOBUF}
+LFLAGS = -Wall -Werror -std=c++14 -lstdc++fs  $(DEBUG) $(INC) -L${THIRD_PARTY} -L${PROTOBUF_LIBS}
+LIBS = -lcld3_full -lprotobuf
 
 cld3_cli : $(OBJS)
-	$(CC) $(LFLAGS) $(OBJS) -o cld3_cli
+	$(CC) $(LFLAGS) $(OBJS) $(LIBS) -o cld3_cli
 
 cld3_cli.o : cld3_cli.h cld3_cli.cc
-	$(CC) $(CFLAGS) cld3_cli.cc
+	$(CC) $(CXXFLAGS) $(LIBS) cld3_cli.cc
 
 clean:
 	rm -rf *.o *~ cld3_cli cld3_cli.tar cld3_cli.dSYM && make clean -C ./tests

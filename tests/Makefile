@@ -1,4 +1,3 @@
-//g++ cld3_cli_test.cc -o test -std=c++14 -lstdc++fs -I${CATCH_DIR}
 OBJS = cld3_cli_test.o
 CC = g++
 DEBUG = -g
@@ -8,13 +7,10 @@ LFLAGS = -Wall -Werror -std=c++14 -lstdc++fs  $(DEBUG) $(INC) -L${THIRD_PARTY} -
 LIBS = -lcld3_full -lprotobuf
 
 test_cld3_cli : $(OBJS)
-	$(CC) $(LFLAGS) $(OBJS) -o test_cld3_cli
+	$(CC) $(LFLAGS) $(OBJS) $(LIBS) -o test_cld3_cli
 
 cld3_cli_test.o : cld3_cli_test.cc
-	$(CC) $(CXXFLAGS) cld3_cli_test.cc
-
-*.o: -I${THIRD_PARTY}/*.cc
-	$(CC) $(CXXFLAGS) *.cc
+	$(CC) $(CXXFLAGS) $(LIBS) cld3_cli_test.cc
 
 clean:
 	rm -rf *.o *~ test_cld3_cli test_cld3_cli.dSYM

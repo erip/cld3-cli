@@ -4,7 +4,12 @@
 #include <experimental/filesystem>
 namespace fs = std::experimental::filesystem;
 
+#include "third_party/cld_3/src/src/base.h"
 #include "third_party/cld_3/src/src/nnet_language_identifier.h"
+using chrome_lang_id::NNetLanguageIdentifier;
+
+#include "jsoncons/json.hpp"
+using jsoncons::json;
 
 std::string get_input_path(const char* arg) {
     if(!arg) {
@@ -49,9 +54,9 @@ class CLD3_cli {
         CLD3_cli(const std::string& input_path,
                  const std::string& output_format,
                  const int N=1) :
-                    input_path{input_path},
-                    output_format{output_format},
-                    N{N}
+        input_path{input_path},
+        output_format{output_format},
+        N{N}
         {
         }
 
@@ -59,14 +64,29 @@ class CLD3_cli {
 
     private:
         const std::string get_output_format() const { return output_format; }
+        void create_lang_entry(const NNetLanguageIdentifier::Result &result);
 
         std::string input_path;
         std::string output_format;
         int N;
+        json results = json::array();
 };
 
 std::ostream& operator<<(std::ostream& os, const CLD3_cli& cli) {
     return os;
+}
+
+void CLD3_cli::create_lang_entry(const NNetLanguageIdentifier::Result &result) {
+    json jsonified_result;
+
+    // Add result attributes to JSON object.
+    jsonified_result["language"] = result.language;
+    jsonified_result["probability"] = result.probability;
+    jsonified_result["reliable"] = result.is_reliable;
+    jsonified_result["proportion"] = result.proportion;
+
+    // Add to our JSON array
+    results.add(jsonified_result);
 }
 
 #endif // CLD3_CLI_H_

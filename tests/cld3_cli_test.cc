@@ -71,3 +71,10 @@ TEST_CASE("N exists and is positive", "[get_num_langs]") {
     const char* N = "10";
     REQUIRE(get_num_langs(N) == 10);
 }
+
+TEST_CASE("Test empty results when no input given", "[CLD3_cli::get_results]") {
+    fs::create_directories("sandbox");
+    CLD3_cli cli{"sandbox", "json", 1};
+    REQUIRE(cli.get_results().size() == 0);
+    fs::remove_all("sandbox");
+}

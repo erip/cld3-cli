@@ -56,37 +56,62 @@ class CLD3_cli {
                  const int N=1) :
         input_path{input_path},
         output_format{output_format},
-        N{N}
+        N{N},
+        lang_id(0, 1000)
         {
         }
 
+        json get_results() const { return results; }
         friend std::ostream& operator<<(std::ostream& os, const CLD3_cli& cli);
 
     private:
         const std::string get_output_format() const { return output_format; }
-        void create_lang_entry(const NNetLanguageIdentifier::Result &result);
+        json create_lang_entry(const std::string& text,
+                               const NNetLanguageIdentifier::Result &result);
+        void identify_most_likely(const std::string& text);
+        void identify_N_most_likely(const std::string& text);
 
         std::string input_path;
         std::string output_format;
         int N;
         json results = json::array();
+        NNetLanguageIdentifier lang_id;
 };
 
 std::ostream& operator<<(std::ostream& os, const CLD3_cli& cli) {
     return os;
 }
 
-void CLD3_cli::create_lang_entry(const NNetLanguageIdentifier::Result &result) {
+void CLD3_cli::identify_most_likely(const std::string& text) {
+    // Find the most likely language
+    const auto result = this->lang_id.FindLanguage(text);
+    // JSONify the results. Push into our results.
+    const auto jsonified_results = this->create_lang_entry(text, result);
+    this->results.add(jsonified_results);
+}
+
+void CLD3_cli::identify_N_most_likely(const std::string& text) {
+    // Find the N most likely languages
+    const auto results = this->lang_id.FindTopNMostLikelyLangs(text, this->N);
+    // JSONify the results. Push them into our results.
+    for(const auto& result: results) {
+        const auto jsonified_results = this->create_lang_entry(text, result);
+        this->results.add(jsonified_results);
+    }
+}
+
+json CLD3_cli::create_lang_entry(const std::string& text,
+                                 const NNetLanguageIdentifier::Result &result) {
     json jsonified_result;
 
     // Add result attributes to JSON object.
+    jsonified_result["text"] = text;
     jsonified_result["language"] = result.language;
     jsonified_result["probability"] = result.probability;
     jsonified_result["reliable"] = result.is_reliable;
     jsonified_result["proportion"] = result.proportion;
 
-    // Add to our JSON array
-    results.add(jsonified_result);
+    return jsonified_result;
 }
 
 #endif // CLD3_CLI_H_

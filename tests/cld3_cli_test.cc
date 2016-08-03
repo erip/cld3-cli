@@ -1,7 +1,9 @@
 #define CATCH_CONFIG_MAIN
 #include "catch.hpp"
 #include "../cld3_cli.h"
+
 #include <string>
+#include <fstream>
 
 TEST_CASE("Input path does not exist", "[get_input_path]" ) {
     const char* no_input_path = nullptr;
@@ -77,4 +79,20 @@ TEST_CASE("Test empty results when no input given", "[CLD3_cli::get_results]") {
     CLD3_cli cli{"sandbox", "json", 1};
     REQUIRE(cli.get_results().size() == 0);
     fs::remove_all("sandbox");
+}
+
+TEST_CASE("Identify English text only", "[CLD3_cli::work]") {
+    std::ofstream fout{"hello.txt"};
+    fout << "This text is written in English.";
+    fout.close();
+    CLD3_cli cli{"hello.txt", "json", 1};
+    cli.work();
+    fs::remove_all("hello.txt");
+    REQUIRE(cli.get_results().size() == 1);
+    const auto res = cli.get_results()[0];
+    REQUIRE(res["language"].as<std::string>() == "en");
+    REQUIRE(res["probability"].as<double>() == 0.997049868106842);
+    REQUIRE(res["proportion"].as<double>() == 1.0);
+    REQUIRE(res["reliable"].as<bool>() == true);
+    REQUIRE(res["text"].as<std::string>() == "This text is written in English.");
 }

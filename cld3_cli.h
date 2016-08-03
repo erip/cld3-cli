@@ -1,6 +1,9 @@
 #ifndef CLD3_CLI_H_
 #define CLD3_CLI_H_
 
+#include <string>
+#include <fstream>
+
 #include <experimental/filesystem>
 namespace fs = std::experimental::filesystem;
 
@@ -61,6 +64,8 @@ class CLD3_cli {
         {
         }
 
+        void work();
+
         json get_results() const { return results; }
         friend std::ostream& operator<<(std::ostream& os, const CLD3_cli& cli);
 
@@ -70,6 +75,9 @@ class CLD3_cli {
                                const NNetLanguageIdentifier::Result &result);
         void identify_most_likely(const std::string& text);
         void identify_N_most_likely(const std::string& text);
+        void identify_file_line_by_line(const std::string& filename);
+        void identify_most_likely_lang_per_line(const std::string& filename);
+        void identify_most_likely_N_langs_per_line(const std::string& filename);
 
         std::string input_path;
         std::string output_format;
@@ -77,6 +85,12 @@ class CLD3_cli {
         json results = json::array();
         NNetLanguageIdentifier lang_id;
 };
+
+void CLD3_cli::work() {
+    if(fs::is_regular_file(this->input_path)) {
+        this->identify_file_line_by_line(this->input_path);
+    }
+}
 
 std::ostream& operator<<(std::ostream& os, const CLD3_cli& cli) {
     return os;
@@ -97,6 +111,34 @@ void CLD3_cli::identify_N_most_likely(const std::string& text) {
     for(const auto& result: results) {
         const auto jsonified_results = this->create_lang_entry(text, result);
         this->results.add(jsonified_results);
+    }
+}
+
+void CLD3_cli::identify_file_line_by_line(const std::string& filename) {
+    if(this->N == 1) {
+        this->identify_most_likely_lang_per_line(filename);
+    } else {
+        this->identify_most_likely_N_langs_per_line(filename);
+    }
+}
+
+void CLD3_cli::identify_most_likely_lang_per_line(const std::string& filename) {
+    std::ifstream fin{filename};
+    // Identify the most likely lang for each document in the file.
+    // Add them to the results.
+    std::string doc;
+    while(std::getline(fin, doc) && !doc.empty()) {
+        this->identify_most_likely(doc);
+    }
+}
+
+void CLD3_cli::identify_most_likely_N_langs_per_line(const std::string& filename) {
+    std::ifstream fin{filename};
+    // Identify the N most likely langs for each document in the file.
+    // Add them to the results.
+    std::string doc;
+    while(std::getline(fin, doc) && !doc.empty()) {
+        this->identify_N_most_likely(doc);
     }
 }
 

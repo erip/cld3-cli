@@ -16,7 +16,7 @@ clean:
 	rm -rf *.o *~ cld3_cli cld3_cli.tar cld3_cli.dSYM && make clean -C ./tests
 
 tar:
-	make clean && tar cfv cld3_cli.tar Makefile cld3_cli.h cld3_cli.cc ./tests/Makefile ./tests/cld3_cli_test.cc
+	make clean && tar cfv cld3_cli.tar README.md Makefile cld3_cli.h cld3_cli.cc ./tests/Makefile ./tests
 
 test:
 	make -C ./tests && ./tests/test_cld3_cli && make clean -C ./tests

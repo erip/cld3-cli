@@ -65,9 +65,8 @@ class CLD3_cli {
         }
 
         void work();
-
+        void output() const;
         json get_results() const { return results; }
-        friend std::ostream& operator<<(std::ostream& os, const CLD3_cli& cli);
 
     private:
         const std::string get_output_format() const { return output_format; }
@@ -92,8 +91,16 @@ void CLD3_cli::work() {
     }
 }
 
-std::ostream& operator<<(std::ostream& os, const CLD3_cli& cli) {
-    return os;
+void CLD3_cli::output() const {
+    if(this->output_format == "json") {
+        std::string outfile;
+        std::cout << "Please enter the name of the output file: ";
+        std::getline(std::cin, outfile);
+        std::ofstream fout{outfile};
+        fout << pretty_print(this->results) << '\n';
+    } else if(this->output_format == "stdout") {
+        std::cout << pretty_print(this->results) << '\n';
+    }
 }
 
 void CLD3_cli::identify_most_likely(const std::string& text) {

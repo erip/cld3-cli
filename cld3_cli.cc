@@ -26,6 +26,7 @@ int main(int argc, char** argv) {
     try {
         CLD3_cli cli{get_input_path(argv[1]), get_output_format(argv[2]), get_num_langs(argv[3])};
         cli.work();
+        cli.output();
     } catch(const std::invalid_argument& e) {
         std::cerr << e.what() << '\n';
         return -1;

@@ -19,4 +19,4 @@ tar:
 	make clean && tar cfv cld3_cli.tar README.md Makefile cld3_cli.h cld3_cli.cc ./tests/Makefile ./tests
 
 test:
-	make -C ./tests && ./tests/test_cld3_cli && make clean -C ./tests
+	make -C ./tests && ./tests/test_cld3_cli; make clean -C ./tests

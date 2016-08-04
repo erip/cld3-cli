@@ -92,11 +92,13 @@ class CLD3_cli {
         void identify_N_most_likely(const std::string& text);
 
         // line-by-line processing workflow
+        void identify_directory_line_by_line(const std::string& dirname);
         void identify_line_by_line(const std::string& filename);
         void identify_most_likely_lang_per_line(const std::string& filename);
         void identify_most_likely_N_langs_per_line(const std::string& filename);
 
         // whole-text processing workflow
+        void identify_directory_whole_text(const std::string& dirname);
         void identify_whole_text(const std::string& filename);
         void identify_most_likely_lang_of_file(const std::string& filename);
         void identify_most_likely_N_langs_of_file(const std::string& filename);
@@ -110,58 +112,58 @@ class CLD3_cli {
 };
 
 void CLD3_cli::work() {
-    if(fs::is_regular_file(this->input_path)) {
+    if(fs::is_regular_file(input_path)) {
         if(process_workflow == "line-by-line") {
-            this->identify_line_by_line(this->input_path);
+            identify_line_by_line(input_path);
         } else if(process_workflow == "whole-text") {
-            this->identify_whole_text(this->input_path);
+            identify_whole_text(input_path);
         }
     }
 }
 
 void CLD3_cli::output() const {
-    if(this->output_format == "json") {
+    if(output_format == "json") {
         std::string outfile;
         std::cout << "Please enter the name of the output file: ";
         std::getline(std::cin, outfile);
         std::ofstream fout{outfile};
-        fout << pretty_print(this->results) << '\n';
-    } else if(this->output_format == "stdout") {
-        std::cout << pretty_print(this->results) << '\n';
+        fout << pretty_print(results) << '\n';
+    } else if(output_format == "stdout") {
+        std::cout << pretty_print(results) << '\n';
     }
 }
 
 void CLD3_cli::identify_most_likely(const std::string& text) {
     // Find the most likely language
-    const auto result = this->lang_id.FindLanguage(text);
+    const auto result = lang_id.FindLanguage(text);
     // JSONify the results. Push into our results.
-    const auto jsonified_results = this->create_lang_entry(text, result);
-    this->results.add(jsonified_results);
+    const auto jsonified_results = create_lang_entry(text, result);
+    results.add(jsonified_results);
 }
 
 void CLD3_cli::identify_N_most_likely(const std::string& text) {
     // Find the N most likely languages
-    const auto results = this->lang_id.FindTopNMostLikelyLangs(text, this->N);
+    const auto lang_results = lang_id.FindTopNMostLikelyLangs(text, N);
     // JSONify the results. Push them into our results.
-    for(const auto& result: results) {
-        const auto jsonified_results = this->create_lang_entry(text, result);
-        this->results.add(jsonified_results);
+    for(const auto& result: lang_results) {
+        const auto jsonified_results = create_lang_entry(text, result);
+        results.add(jsonified_results);
     }
 }
 
 void CLD3_cli::identify_line_by_line(const std::string& filename) {
-    if(this->N == 1) {
-        this->identify_most_likely_lang_per_line(filename);
+    if(N == 1) {
+        identify_most_likely_lang_per_line(filename);
     } else {
-        this->identify_most_likely_N_langs_per_line(filename);
+        identify_most_likely_N_langs_per_line(filename);
     }
 }
 
 void CLD3_cli::identify_whole_text(const std::string& filename) {
-    if(this->N == 1) {
-        this->identify_most_likely_lang_of_file(filename);
+    if(N == 1) {
+        identify_most_likely_lang_of_file(filename);
     } else {
-        this->identify_most_likely_N_langs_of_file(filename);
+        identify_most_likely_N_langs_of_file(filename);
     }
 }
 
@@ -171,7 +173,7 @@ void CLD3_cli::identify_most_likely_lang_per_line(const std::string& filename) {
     // Add them to the results.
     std::string doc;
     while(std::getline(fin, doc) && !doc.empty()) {
-        this->identify_most_likely(doc);
+        identify_most_likely(doc);
     }
 }
 
@@ -181,7 +183,7 @@ void CLD3_cli::identify_most_likely_N_langs_per_line(const std::string& filename
     // Add them to the results.
     std::string doc;
     while(std::getline(fin, doc) && !doc.empty()) {
-        this->identify_N_most_likely(doc);
+        identify_N_most_likely(doc);
     }
 }
 
@@ -192,7 +194,7 @@ void CLD3_cli::identify_most_likely_lang_of_file(const std::string& filename) {
                      std::istreambuf_iterator<char>());
     fin.close();
     if(!doc.empty()) {
-        this->identify_most_likely(doc);
+        identify_most_likely(doc);
     }
 }
 
@@ -203,7 +205,7 @@ void CLD3_cli::identify_most_likely_N_langs_of_file(const std::string& filename)
                      std::istreambuf_iterator<char>());
     fin.close();
     if(!doc.empty()) {
-        this->identify_N_most_likely(doc);
+        identify_N_most_likely(doc);
     }
 }
 

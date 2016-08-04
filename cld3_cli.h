@@ -3,6 +3,7 @@
 
 #include <string>
 #include <fstream>
+#include <streambuf>
 
 #include <experimental/filesystem>
 namespace fs = std::experimental::filesystem;
@@ -89,11 +90,16 @@ class CLD3_cli {
                                const NNetLanguageIdentifier::Result &result);
         void identify_most_likely(const std::string& text);
         void identify_N_most_likely(const std::string& text);
+
+        // line-by-line processing workflow
         void identify_file_line_by_line(const std::string& filename);
         void identify_most_likely_lang_per_line(const std::string& filename);
         void identify_most_likely_N_langs_per_line(const std::string& filename);
 
+        // whole-text processing workflow
         void identify_whole_text(const std::string& filename);
+        void identify_most_likely_lang_of_file(const std::string& filename);
+        void identify_most_likely_N_langs_of_file(const std::string& filename);
 
         std::string input_path;
         std::string output_format;
@@ -107,6 +113,8 @@ void CLD3_cli::work() {
     if(fs::is_regular_file(this->input_path)) {
         if(process_workflow == "line-by-line") {
             this->identify_file_line_by_line(this->input_path);
+        } else if(process_workflow == "whole-text") {
+            this->identify_whole_text(this->input_path);
         }
     }
 }
@@ -149,6 +157,14 @@ void CLD3_cli::identify_file_line_by_line(const std::string& filename) {
     }
 }
 
+void CLD3_cli::identify_whole_text(const std::string& filename) {
+    if(this->N == 1) {
+        this->identify_most_likely_lang_of_file(filename);
+    } else {
+        this->identify_most_likely_N_langs_of_file(filename);
+    }
+}
+
 void CLD3_cli::identify_most_likely_lang_per_line(const std::string& filename) {
     std::ifstream fin{filename};
     // Identify the most likely lang for each document in the file.
@@ -165,6 +181,28 @@ void CLD3_cli::identify_most_likely_N_langs_per_line(const std::string& filename
     // Add them to the results.
     std::string doc;
     while(std::getline(fin, doc) && !doc.empty()) {
+        this->identify_N_most_likely(doc);
+    }
+}
+
+void CLD3_cli::identify_most_likely_lang_of_file(const std::string& filename) {
+    std::ifstream fin{filename};
+    // Read file into memory
+    std::string doc((std::istreambuf_iterator<char>(fin)),
+                     std::istreambuf_iterator<char>());
+    fin.close();
+    if(!doc.empty()) {
+        this->identify_most_likely(doc);
+    }
+}
+
+void CLD3_cli::identify_most_likely_N_langs_of_file(const std::string& filename) {
+    std::ifstream fin{filename};
+    // Read file into memory
+    std::string doc((std::istreambuf_iterator<char>(fin)),
+                     std::istreambuf_iterator<char>());
+    fin.close();
+    if(!doc.empty()) {
         this->identify_N_most_likely(doc);
     }
 }

@@ -101,7 +101,7 @@ TEST_CASE("Test empty results when no input given", "[CLD3_cli::get_results]") {
     fs::remove_all("sandbox");
 }
 
-TEST_CASE("Identify English text only", "[CLD3_cli::work]") {
+TEST_CASE("Identify English text only line-by-line", "[CLD3_cli::work]") {
     std::ofstream fout{"hello.txt"};
     fout << "This text is written in English.";
     fout.close();
@@ -115,4 +115,20 @@ TEST_CASE("Identify English text only", "[CLD3_cli::work]") {
     REQUIRE(res["proportion"].as<double>() == 1.0);
     REQUIRE(res["reliable"].as<bool>() == true);
     REQUIRE(res["text"].as<std::string>() == "This text is written in English.");
+}
+
+TEST_CASE("Indentifying English text only whole-text", "[CLD3_cli::work]") {
+    std::ofstream fout{"hello.txt"};
+    fout << "This text is written in English.\nCan you read it?";
+    fout.close();
+    CLD3_cli cli{"hello.txt", "json", "whole-text", 1};
+    cli.work();
+    fs::remove_all("hello.txt");
+    REQUIRE(cli.get_results().size() == 1);
+    const auto res = cli.get_results()[0];
+    REQUIRE(res["language"].as<std::string>() == "en");
+    REQUIRE(res["probability"].as<double>() == 0.9999504089355469);
+    REQUIRE(res["proportion"].as<double>() == 1.0);
+    REQUIRE(res["reliable"].as<bool>() == true);
+    REQUIRE(res["text"].as<std::string>() == "This text is written in English.\nCan you read it?");
 }

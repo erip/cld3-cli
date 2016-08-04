@@ -119,7 +119,8 @@ TEST_CASE("Identify English text only line-by-line", "[CLD3_cli::work]") {
 
 TEST_CASE("Indentifying English text only whole-text", "[CLD3_cli::work]") {
     std::ofstream fout{"hello.txt"};
-    fout << "This text is written in English.\nCan you read it?\n";
+    std::string text{"This text is written in English.\nCan you read it?\n"};
+    fout << text;
     fout.close();
     CLD3_cli cli{"hello.txt", "json", "whole-text", 1};
     cli.work();
@@ -127,8 +128,9 @@ TEST_CASE("Indentifying English text only whole-text", "[CLD3_cli::work]") {
     REQUIRE(cli.get_results().size() == 1);
     const auto res = cli.get_results()[0];
     REQUIRE(res["language"].as<std::string>() == "en");
-    REQUIRE(res["probability"].as<double>() == 0.9999504089355469);
+    REQUIRE(res["probability"].as<double>() == 0.9997177720069885);
     REQUIRE(res["proportion"].as<double>() == 1.0);
     REQUIRE(res["reliable"].as<bool>() == true);
-    REQUIRE(res["text"].as<std::string>() == "This text is written in English.\nCan you read it?\n");
+    escape_newlines(text);
+    REQUIRE(res["text"].as<std::string>() == text);
 }

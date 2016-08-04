@@ -55,3 +55,7 @@ To build CLD3-cli, one can simply execute `make` in the root directory.
 
 If CLD3-cli fails to build or any tests fail, please ensure your C++ compiler
 supports the aforementioned features before raising an issue.
+
+### Authors
+
+- [Elijah Rippeth](mailto:elijah.rippeth@gmail.com)

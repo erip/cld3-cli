@@ -41,6 +41,19 @@ std::string get_output_format(const char* arg) {
     return format;
 }
 
+std::string get_processing_workflow(const char* arg) {
+    if(!arg) {
+        throw std::invalid_argument{"No <process-workflow> argument."};
+    }
+    std::string process{arg};
+    std::transform(process.begin(), process.end(), process.begin(), ::tolower);
+
+    if(process != "line-by-line" && process != "whole-text") {
+        throw std::invalid_argument{"<process-workflow> should be either \"line-by-line\" or a \"whole-text\"."};
+    }
+    return process;
+}
+
 int get_num_langs(const char* arg) {
     if(!arg) return 1;
     int N;
@@ -56,9 +69,11 @@ class CLD3_cli {
     public:
         CLD3_cli(const std::string& input_path,
                  const std::string& output_format,
+                 const std::string& process_workflow,
                  const int N=1) :
         input_path{input_path},
         output_format{output_format},
+        process_workflow{process_workflow},
         N{N},
         lang_id(0, 1000)
         {
@@ -78,8 +93,11 @@ class CLD3_cli {
         void identify_most_likely_lang_per_line(const std::string& filename);
         void identify_most_likely_N_langs_per_line(const std::string& filename);
 
+        void identify_whole_text(const std::string& filename);
+
         std::string input_path;
         std::string output_format;
+        std::string process_workflow;
         int N;
         json results = json::array();
         NNetLanguageIdentifier lang_id;
@@ -87,7 +105,9 @@ class CLD3_cli {
 
 void CLD3_cli::work() {
     if(fs::is_regular_file(this->input_path)) {
-        this->identify_file_line_by_line(this->input_path);
+        if(process_workflow == "line-by-line") {
+            this->identify_file_line_by_line(this->input_path);
+        }
     }
 }
 

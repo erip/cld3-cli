@@ -49,6 +49,26 @@ TEST_CASE("Output format exists and is stdout (case-insensitive)", "[get_output_
     REQUIRE(get_output_format(mixed_stdout_output_format) == "stdout");
 }
 
+TEST_CASE("Workflow processing does not exist", "[get_processing_workflow]" ) {
+    const char* no_workflow = nullptr;
+    REQUIRE_THROWS_AS(get_processing_workflow(no_workflow), std::invalid_argument);
+}
+
+TEST_CASE("Workflow processing exists, but is invalid", "[get_processing_workflow]" ) {
+    const char* broken_workflow = "line-by-file";
+    REQUIRE_THROWS_AS(get_processing_workflow(broken_workflow), std::invalid_argument);
+}
+
+TEST_CASE("Workflow processing is line-by-line", "[get_processing_workflow]" ) {
+    const char* line_by_line_workflow = "line-by-line";
+    REQUIRE(get_processing_workflow(line_by_line_workflow) == "line-by-line");
+}
+
+TEST_CASE("Workflow processing is whole-text", "[get_processing_workflow]" ) {
+    const char* whole_file_workflow = "whole-text";
+    REQUIRE(get_processing_workflow(whole_file_workflow) == "whole-text");
+}
+
 TEST_CASE("N does not exist", "[get_num_langs]") {
     const char* no_N = nullptr;
     REQUIRE(get_num_langs(no_N) == 1);
@@ -76,7 +96,7 @@ TEST_CASE("N exists and is positive", "[get_num_langs]") {
 
 TEST_CASE("Test empty results when no input given", "[CLD3_cli::get_results]") {
     fs::create_directories("sandbox");
-    CLD3_cli cli{"sandbox", "json", 1};
+    CLD3_cli cli{"sandbox", "json", "line-by-line", 1};
     REQUIRE(cli.get_results().size() == 0);
     fs::remove_all("sandbox");
 }
@@ -85,7 +105,7 @@ TEST_CASE("Identify English text only", "[CLD3_cli::work]") {
     std::ofstream fout{"hello.txt"};
     fout << "This text is written in English.";
     fout.close();
-    CLD3_cli cli{"hello.txt", "json", 1};
+    CLD3_cli cli{"hello.txt", "json", "line-by-line", 1};
     cli.work();
     fs::remove_all("hello.txt");
     REQUIRE(cli.get_results().size() == 1);

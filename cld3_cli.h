@@ -92,7 +92,7 @@ class CLD3_cli {
         void identify_N_most_likely(const std::string& text);
 
         // line-by-line processing workflow
-        void identify_file_line_by_line(const std::string& filename);
+        void identify_line_by_line(const std::string& filename);
         void identify_most_likely_lang_per_line(const std::string& filename);
         void identify_most_likely_N_langs_per_line(const std::string& filename);
 
@@ -112,7 +112,7 @@ class CLD3_cli {
 void CLD3_cli::work() {
     if(fs::is_regular_file(this->input_path)) {
         if(process_workflow == "line-by-line") {
-            this->identify_file_line_by_line(this->input_path);
+            this->identify_line_by_line(this->input_path);
         } else if(process_workflow == "whole-text") {
             this->identify_whole_text(this->input_path);
         }
@@ -149,7 +149,7 @@ void CLD3_cli::identify_N_most_likely(const std::string& text) {
     }
 }
 
-void CLD3_cli::identify_file_line_by_line(const std::string& filename) {
+void CLD3_cli::identify_line_by_line(const std::string& filename) {
     if(this->N == 1) {
         this->identify_most_likely_lang_per_line(filename);
     } else {

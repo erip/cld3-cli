@@ -1,9 +1,12 @@
 #ifndef CLD3_CLI_H_
 #define CLD3_CLI_H_
 
+#include <iostream>
+#include <iomanip>
 #include <string>
 #include <fstream>
 #include <streambuf>
+#include <algorithm>
 
 #include <experimental/filesystem>
 namespace fs = std::experimental::filesystem;
@@ -14,6 +17,16 @@ using chrome_lang_id::NNetLanguageIdentifier;
 
 #include "jsoncons/json.hpp"
 using jsoncons::json;
+
+void escape_newlines(std::string& text) {
+    std::size_t start_pos = 0;
+    std::string from{"\n"};
+    std::string to{"\\n"};
+    while((start_pos = text.find(from, start_pos)) != std::string::npos) {
+        text.replace(start_pos, from.length(), to);
+        start_pos += to.length();
+    }
+}
 
 std::string get_input_path(const char* arg) {
     if(!arg) {
@@ -139,7 +152,14 @@ void CLD3_cli::output() const {
         std::ofstream fout{outfile};
         fout << pretty_print(results) << '\n';
     } else if(output_format == "stdout") {
-        std::cout << pretty_print(results) << '\n';
+        for(const auto& result: results.elements()) {
+            std::cout << std::fixed;
+            std::cout << result["source"].as<std::string>() << '\t' <<
+            result["language"].as<std::string>() << '\t' << std::setprecision(9) <<
+            result["probability"].as<double>() << '\t' << std::setprecision(9) <<
+            result["proportion"].as<double>() << '\t' <<
+            result["text"].as<std::string>() << '\n';
+        }
     }
 }
 
@@ -240,6 +260,7 @@ void CLD3_cli::identify_most_likely_lang_of_file(const std::string& filename) {
     std::string doc((std::istreambuf_iterator<char>(fin)),
                      std::istreambuf_iterator<char>());
     fin.close();
+    escape_newlines(doc);
     if(!doc.empty()) {
         identify_most_likely(doc, filename);
     }
@@ -251,6 +272,7 @@ void CLD3_cli::identify_most_likely_N_langs_of_file(const std::string& filename)
     std::string doc((std::istreambuf_iterator<char>(fin)),
                      std::istreambuf_iterator<char>());
     fin.close();
+    escape_newlines(doc);
     if(!doc.empty()) {
         identify_N_most_likely(doc, filename);
     }

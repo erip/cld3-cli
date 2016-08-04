@@ -88,8 +88,12 @@ class CLD3_cli {
         const std::string get_output_format() const { return output_format; }
         json create_lang_entry(const std::string& text,
                                const NNetLanguageIdentifier::Result &result);
-        void identify_most_likely(const std::string& text);
-        void identify_N_most_likely(const std::string& text);
+        void identify_most_likely(const std::string& text,
+                                  const std::string& source,
+                                  const unsigned long line_number=0);
+        void identify_N_most_likely(const std::string& text,
+                                    const std::string& source,
+                                    const unsigned long line_number=0);
 
         // line-by-line processing workflow
         void identify_directory_line_by_line(const std::string& dirname);
@@ -139,20 +143,32 @@ void CLD3_cli::output() const {
     }
 }
 
-void CLD3_cli::identify_most_likely(const std::string& text) {
+void CLD3_cli::identify_most_likely(const std::string& text,
+                                    const std::string& source,
+                                    const unsigned long line_number) {
     // Find the most likely language
     const auto result = lang_id.FindLanguage(text);
     // JSONify the results. Push into our results.
-    const auto jsonified_results = create_lang_entry(text, result);
+    auto jsonified_results = create_lang_entry(text, result);
+    jsonified_results["source"] = source;
+    if(process_workflow == "line-by-line") {
+        jsonified_results["line_number"] = line_number;
+    }
     results.add(jsonified_results);
 }
 
-void CLD3_cli::identify_N_most_likely(const std::string& text) {
+void CLD3_cli::identify_N_most_likely(const std::string& text,
+                                    const std::string& source,
+                                    const unsigned long line_number) {
     // Find the N most likely languages
     const auto lang_results = lang_id.FindTopNMostLikelyLangs(text, N);
     // JSONify the results. Push them into our results.
     for(const auto& result: lang_results) {
-        const auto jsonified_results = create_lang_entry(text, result);
+        auto jsonified_results = create_lang_entry(text, result);
+        jsonified_results["source"] = source;
+        if(process_workflow == "line-by-line") {
+            jsonified_results["line_number"] = line_number;
+        }
         results.add(jsonified_results);
     }
 }
@@ -195,8 +211,12 @@ void CLD3_cli::identify_most_likely_lang_per_line(const std::string& filename) {
     // Identify the most likely lang for each document in the file.
     // Add them to the results.
     std::string doc;
-    while(std::getline(fin, doc) && !doc.empty()) {
-        identify_most_likely(doc);
+    unsigned long line_no = 1;
+    while(std::getline(fin, doc)) {
+        if(!doc.empty()) {
+            identify_most_likely(doc, filename, line_no);
+        }
+        ++line_no;
     }
 }
 
@@ -205,8 +225,12 @@ void CLD3_cli::identify_most_likely_N_langs_per_line(const std::string& filename
     // Identify the N most likely langs for each document in the file.
     // Add them to the results.
     std::string doc;
-    while(std::getline(fin, doc) && !doc.empty()) {
-        identify_N_most_likely(doc);
+    unsigned long line_no = 1;
+    while(std::getline(fin, doc)) {
+        if(!doc.empty()) {
+            identify_N_most_likely(doc, filename, line_no);
+        }
+        ++line_no;
     }
 }
 
@@ -217,7 +241,7 @@ void CLD3_cli::identify_most_likely_lang_of_file(const std::string& filename) {
                      std::istreambuf_iterator<char>());
     fin.close();
     if(!doc.empty()) {
-        identify_most_likely(doc);
+        identify_most_likely(doc, filename);
     }
 }
 
@@ -228,7 +252,7 @@ void CLD3_cli::identify_most_likely_N_langs_of_file(const std::string& filename)
                      std::istreambuf_iterator<char>());
     fin.close();
     if(!doc.empty()) {
-        identify_N_most_likely(doc);
+        identify_N_most_likely(doc, filename);
     }
 }
 

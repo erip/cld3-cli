@@ -118,6 +118,12 @@ void CLD3_cli::work() {
         } else if(process_workflow == "whole-text") {
             identify_whole_text(input_path);
         }
+    } else if(fs::is_directory(input_path)) {
+        if(process_workflow == "line-by-line") {
+            identify_directory_line_by_line(input_path);
+        } else if(process_workflow == "whole-text") {
+            identify_directory_whole_text(input_path);
+        }
     }
 }
 
@@ -156,6 +162,23 @@ void CLD3_cli::identify_line_by_line(const std::string& filename) {
         identify_most_likely_lang_per_line(filename);
     } else {
         identify_most_likely_N_langs_per_line(filename);
+    }
+}
+
+void CLD3_cli::identify_directory_line_by_line(const std::string& dirname) {
+    for(const auto& file: fs::directory_iterator(dirname)) {
+        if(fs::is_regular_file(file)) {
+            identify_line_by_line(file.path());
+        }
+    }
+}
+
+
+void CLD3_cli::identify_directory_whole_text(const std::string& dirname) {
+    for(const auto& file: fs::directory_iterator(dirname)) {
+        if(fs::is_regular_file(file)) {
+            identify_whole_text(file.path());
+        }
     }
 }
 

@@ -37,7 +37,7 @@ Generate `cld3_full.so`:
     # Generate C++14 `libcld3_full.so`
     g++ -L${PROTOBUF_LIBS} -Lscript_span -I${PROTOBUF} -shared -fPIC *.cc -std=c++14 -o libcld3_full.so $LDFLAGS -Wl,-install_name,libcld3_full.so -I${THIRD_PARTY} -lcld2_full -lprotobuf
     # Move libs
-    cp libcld2_full.so /usr/local/lib
+    cp script_span/libcld2_full.so /usr/local/lib
     cp libcld3_full.so /usr/local/lib
 
 

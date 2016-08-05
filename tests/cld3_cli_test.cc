@@ -178,12 +178,9 @@ TEST_CASE("Identifying Chinese (non-ASCII) directory whole-text", "[get_input_pa
   fs::create_directories("sandbox");
   std::ofstream fout1{"sandbox/hello1.txt"};
   std::ofstream fout2{"sandbox/hello2.txt"};
-  std::string text{"这是中文的。"};
-  fout1 << text;
-  text = "看得懂吗？";
-  fout2 << text;
-  fout1.close();
-  fout2.close();
+  std::string text1{"这是中文的。"}, text2{"看得懂吗？"};
+  fout1 << text1; fout2 << text2;
+  fout1.close(); fout2.close();
   CLD3_cli cli{"sandbox", "stdout", "whole-text", 1};
   cli.work();
   fs::remove_all("sandbox");

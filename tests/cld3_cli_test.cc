@@ -134,3 +134,62 @@ TEST_CASE("Indentifying English text only whole-text", "[CLD3_cli::work]") {
     escape_newlines(text);
     REQUIRE(res["text"].as<std::string>() == text);
 }
+
+TEST_CASE("Indentifying English text with two lines line-by-line", "[CLD3_cli::work]") {
+    std::ofstream fout{"hello.txt"};
+    std::string text{"This text is written in English.\nCan you read it?\n"};
+    fout << text;
+    fout.close();
+    CLD3_cli cli{"hello.txt", "json", "line-by-line", 1};
+    cli.work();
+    fs::remove_all("hello.txt");
+    REQUIRE(cli.get_results().size() == 2);
+}
+
+TEST_CASE("Indentifying English text with two lines line-by-line, top 2 languages", "[CLD3_cli::work]") {
+    std::ofstream fout{"hello.txt"};
+    std::string text{"This text is written in English.\nCan you read it?\n"};
+    fout << text;
+    fout.close();
+    CLD3_cli cli{"hello.txt", "json", "line-by-line", 2};
+    cli.work();
+    fs::remove_all("hello.txt");
+    REQUIRE(cli.get_results().size() == 4);
+    REQUIRE(cli.get_results()[0]["language"].as<std::string>() == "en");
+    REQUIRE(cli.get_results()[1]["language"].as<std::string>() == "<unknown>");
+    REQUIRE(cli.get_results()[2]["language"].as<std::string>() == "en");
+    REQUIRE(cli.get_results()[3]["language"].as<std::string>() == "<unknown>");
+}
+
+TEST_CASE("Identifying Chinese (non-ASCII) text line-by-line", "[get_input_path]") {
+  std::ofstream fout{"hello.txt"};
+  std::string text{"这是中文的。\n看得懂吗？\n"};
+  fout << text;
+  fout.close();
+  CLD3_cli cli{"hello.txt", "stdout", "line-by-line", 1};
+  cli.work();
+  fs::remove_all("hello.txt");
+  REQUIRE(cli.get_results().size() == 2);
+  REQUIRE(cli.get_results()[0]["language"].as<std::string>() == "zh");
+  REQUIRE(cli.get_results()[1]["language"].as<std::string>() == "zh");
+}
+
+TEST_CASE("Identifying Chinese (non-ASCII) directory whole-text", "[get_input_path]") {
+  fs::create_directories("sandbox");
+  std::ofstream fout1{"sandbox/hello1.txt"};
+  std::ofstream fout2{"sandbox/hello2.txt"};
+  std::string text{"这是中文的。"};
+  fout1 << text;
+  text = "看得懂吗？";
+  fout2 << text;
+  fout1.close();
+  fout2.close();
+  CLD3_cli cli{"sandbox", "stdout", "whole-text", 1};
+  cli.work();
+  fs::remove_all("sandbox");
+  REQUIRE(cli.get_results().size() == 2);
+  REQUIRE(cli.get_results()[0]["language"].as<std::string>() == "zh");
+  REQUIRE(cli.get_results()[0]["text"].as<std::string>() == "这是中文的。");
+  REQUIRE(cli.get_results()[1]["language"].as<std::string>() == "zh");
+  REQUIRE(cli.get_results()[1]["text"].as<std::string>() == "看得懂吗？");
+}

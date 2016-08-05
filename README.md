@@ -18,9 +18,25 @@ It is expected that your C++ compiler supports C++14 features and can use
 experimental filesystem features. It was developed using
 `gcc (Homebrew gcc 5.3.0) 5.3.0`.
 
-It is assumed that the path to `third_party/` can be found at `${CLD3}/third_party`,
-and it is also assumed that all generated headers (from Google Protocol Buffers)
-have already been generated at compile-time of the CLI.
+Because CLD3's header convention follows Chromium's `<third_party/<lib_name>/src/src/X.h>`, it is expected that
+the files in the [CLD3 `src/` directory](https://github.com/google/cld3/tree/master/src) live in
+`${CLD3}/cld_3/third_party/src/src/`, so:
+
+    06:51 $ tree $CLD3/third_party/
+    $CLD3/third_party/
+    └── cld_3
+        └── src
+            └── src
+                ├── BUILD.gn
+                ├── *.cc
+                ├── *.h
+                ├── *.pb.h
+                ├── cld_3.gyp
+                ├── *.proto
+                ├── script_span/
+    ...
+
+It is also assumed that all headers have been generated. This will be outlined later.
 
 It is important that `libprotobuf` is built with the same compiler that will
 be used to build CLD3-cli. I assume that the `libprotobuf.dylib` can be found

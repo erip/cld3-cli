@@ -1,9 +1,9 @@
 OBJS = cld3_cli.o
-CC = g++
+CC = g++-5
 DEBUG = -g
-INC = -I${THIRD_PARTY} -I${JSONCONS} -I${PROTOBUF}
-CXXFLAGS = -Wall -Werror -std=c++14 -lstdc++fs -c $(DEBUG) $(INC) -L${THIRD_PARTY} -L${PROTOBUF}
-LFLAGS = -Wall -Werror -std=c++14 -lstdc++fs  $(DEBUG) $(INC) -L${THIRD_PARTY} -L${PROTOBUF_LIBS}
+INC = -I${CLD3} -I${JSONCONS} -I${PROTOBUF}
+CXXFLAGS = -Wall -Werror -std=c++14 -lstdc++fs -c $(DEBUG) $(INC) -L${CLD3} -L${PROTOBUF}
+LFLAGS = -Wall -Werror -std=c++14 -lstdc++fs  $(DEBUG) $(INC) -L${CLD3} -L${PROTOBUF_LIBS}
 LIBS = -lcld3_full -lprotobuf
 
 cld3_cli : $(OBJS)

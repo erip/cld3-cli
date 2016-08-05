@@ -18,7 +18,7 @@ It is expected that your C++ compiler supports C++14 features and can use
 experimental filesystem features. It was developed using
 `gcc (Homebrew gcc 5.3.0) 5.3.0`.
 
-It is assumed that the path to `third_party/` can be found at `${THIRD_PARTY}/third_party`,
+It is assumed that the path to `third_party/` can be found at `${CLD3}/third_party`,
 and it is also assumed that all generated headers (from Google Protocol Buffers)
 have already been generated at compile-time of the CLI.
 
@@ -28,14 +28,14 @@ at `${PROTOBUF_LIBS}` and the headers can be found at `${PROTOBUF}`.
 
 Generate `cld3_full.so`:
 
-    cd ${THIRD_PARTY}/third_party/cld_3/src/src/script_span
+    cd ${CLD3}/third_party/cld_3/src/src/script_span
     # Generate C++14 `libcld2_full.so`
-    g++ -shared -fPIC -I${THIRD_PARTY} *.cc -std=c++14 -o libcld2_full.so $LDFLAGS -Wl,-install_name,libcld2_full.so
-    cd ${THIRD_PARTY}/third_party/cld_3/src/src
+    g++ -shared -fPIC -I${CLD3} *.cc -std=c++14 -o libcld2_full.so $LDFLAGS -Wl,-install_name,libcld2_full.so
+    cd ${CLD3}/third_party/cld_3/src/src
     # Generate protobuf headers
     protoc --cpp_out=. *.proto
     # Generate C++14 `libcld3_full.so`
-    g++ -L${PROTOBUF_LIBS} -Lscript_span -I${PROTOBUF} -shared -fPIC *.cc -std=c++14 -o libcld3_full.so $LDFLAGS -Wl,-install_name,libcld3_full.so -I${THIRD_PARTY} -lcld2_full -lprotobuf
+    g++ -L${PROTOBUF_LIBS} -Lscript_span -I${PROTOBUF} -shared -fPIC *.cc -std=c++14 -o libcld3_full.so $LDFLAGS -Wl,-install_name,libcld3_full.so -I${CLD3} -lcld2_full -lprotobuf
     # Move libs
     cp script_span/libcld2_full.so /usr/local/lib
     cp libcld3_full.so /usr/local/lib

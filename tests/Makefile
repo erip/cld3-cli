@@ -1,7 +1,7 @@
 OBJS = cld3_cli_test.o
 CC = g++-5
 DEBUG = -g
-INC = -I${CATCH_DIR} -I${CLD3} -I${JSONCONS} -I${PROTOBUF}
+INC = -I${CATCH} -I${CLD3} -I${JSONCONS} -I${PROTOBUF} -I${TCLAP}
 CXXFLAGS = -Wall -Werror -std=c++14 -lstdc++fs -c $(DEBUG) $(INC) -L${CLD3} -L${PROTOBUF}
 LFLAGS = -Wall -Werror -std=c++14 -lstdc++fs  $(DEBUG) $(INC) -L${CLD3} -L${PROTOBUF_LIBS}
 LIBS = -lcld3_full -lprotobuf

@@ -7,6 +7,7 @@
 #include <fstream>
 #include <streambuf>
 #include <algorithm>
+#include <utility>
 
 #include <experimental/filesystem>
 namespace fs = std::experimental::filesystem;
@@ -18,6 +19,9 @@ using chrome_lang_id::NNetLanguageIdentifier;
 #include "jsoncons/json.hpp"
 using jsoncons::json;
 
+#include "tclap/CmdLine.h"
+using namespace TCLAP;
+
 void escape_newlines(std::string& text) {
     std::size_t start_pos = 0;
     std::string from{"\n"};
@@ -28,55 +32,100 @@ void escape_newlines(std::string& text) {
     }
 }
 
-std::string get_input_path(const char* arg) {
-    if(!arg) {
-        throw std::invalid_argument{"No <input-path> argument."};
-    }
-    std::string input_path{arg};
+std::string check_input_path(const std::string& input_path) {
     if(!fs::is_directory(input_path) && !fs::is_regular_file(input_path)) {
         throw std::invalid_argument{"<input-path> should be either a directory or a file."};
     }
     return input_path;
 }
 
-std::string get_output_format(const char* arg) {
-    if(!arg) {
-        throw std::invalid_argument{"No <output-format> argument."};
-    }
+std::string lowercase(const std::string& s) {
+    std::string lowercase_s;
+    lowercase_s.resize(s.size());
+    std::transform(s.begin(), s.end(), lowercase_s.begin(), ::tolower);
+    return lowercase_s;
+}
 
-    // Convert the format to lowercase.
-    std::string format{arg};
-    std::transform(format.begin(), format.end(), format.begin(), ::tolower);
-
-    if(format != "json" && format != "stdout") {
+std::string check_output_format(const std::string& format) {
+    std::string lowercase_format = lowercase(format);
+    if(lowercase_format != "json" && lowercase_format != "stdout") {
         throw std::invalid_argument{"<output-format> should be either \"json\" or \"stdout\"."};
     }
 
-    return format;
+    return lowercase_format;
 }
 
-std::string get_processing_workflow(const char* arg) {
-    if(!arg) {
-        throw std::invalid_argument{"No <process-workflow> argument."};
+std::string check_workflow(const std::string& workflow) {
+    std::string lowercase_workflow = lowercase(workflow);
+    if(lowercase_workflow != "line-by-line" && lowercase_workflow != "whole-text") {
+        throw std::invalid_argument{"<workflow> should be either \"line-by-line\" or a \"whole-text\", not " + lowercase_workflow};
     }
-    std::string process{arg};
-    std::transform(process.begin(), process.end(), process.begin(), ::tolower);
-
-    if(process != "line-by-line" && process != "whole-text") {
-        throw std::invalid_argument{"<process-workflow> should be either \"line-by-line\" or a \"whole-text\"."};
-    }
-    return process;
+    return lowercase_workflow;
 }
 
-int get_num_langs(const char* arg) {
-    if(!arg) return 1;
-    int N;
-    std::stringstream ss{arg};
-    ss >> N;
+int check_num_langs(const int N) {
     if(N <= 0) {
         throw std::invalid_argument{"<N> should be a non-negative number."};
     }
     return N;
+}
+
+std::tuple<std::string, std::string, std::string, int> get_command_line_args(int argc, char** argv) {
+  CmdLine cmd("CLD3-cli leverages Google's CLD3 model to identify languages.", ' ', "0.1.0");
+
+  // Add handler for number of langs
+  std::string short_flag = "N";
+  std::string long_flag = "";
+  std::string help = "Top N languages to identify (default to 1).";
+  bool required = false;
+  int default_n = 1;
+  std::string type = "N";
+  ValueArg<int> N_flag(short_flag, long_flag, help, required,
+                       default_n, type);
+  cmd.add(N_flag);
+
+  // Add workflow arg handler
+  short_flag = "w";
+  long_flag = "workflow";
+  help = "Either \"line-by-line\" or \"whole-text\".";
+  required = true;
+  std::string default_value = "line-by-line";
+  type = "workflow";
+  ValueArg<std::string> workflow_flag(short_flag, long_flag, help, required,
+                                      default_value, type);
+  cmd.add(workflow_flag);
+
+  // Add output format arg handler
+  short_flag = "o";
+  long_flag = "output-format";
+  help = "Either \"json\" or \"stdout\".";
+  required = true;
+  default_value = "stdout";
+  type = "output-format";
+  ValueArg<std::string> output_format_flag(short_flag, long_flag, help, required,
+                                           default_value, type);
+  cmd.add(output_format_flag);
+
+  // Add input path arg handler
+  short_flag = "i";
+  long_flag = "input-path";
+  help = "Path to UTF8 file or directory containing UTF8 files.";
+  required = true;
+  default_value = "/dev/null";
+  type = "input-path";
+  ValueArg<std::string> input_path_flag(short_flag, long_flag, help, required,
+                                        default_value, type);
+  cmd.add(input_path_flag);
+
+  cmd.parse(argc, argv);
+
+  int N = check_num_langs(N_flag.getValue());
+  std::string workflow = check_workflow(workflow_flag.getValue());
+  std::string output_format = check_output_format(output_format_flag.getValue());
+  std::string input_path = check_input_path(input_path_flag.getValue());
+
+  std::tuple<std::string, std::string, std::string, int> t{input_path, output_format, workflow, N};
+  return t;
 }
 
 class CLD3_cli {

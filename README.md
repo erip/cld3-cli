@@ -12,6 +12,10 @@ CLD3-cli relies on [jsoncons](https://github.com/danielaparker/jsoncons) for
 JSON serialization. This header-only library's `src/` directory is expected to
 be found at `${JSONCONS}` for CLD3-cli to work.
 
+CLD3-cli also relies on [TCLAP](http://tclap.sourceforge.net/) for
+command-line argument parsing. This header-only library's `include/` directory
+is expected to be found at `${TCLAP}` for CLD3-cli to work.
+
 ### Installation
 
 It is expected that your C++ compiler supports C++14 features and can use
@@ -60,7 +64,7 @@ Generate `cld3_full.so`:
 ### Testing
 
 CLD3-cli uses [Catch](https://github.com/philsquared/Catch) for testing. It is
-assumed that the path to Catch's `include/` directory can be found at `${CATCH_DIR}`
+assumed that the path to Catch's `include/` directory can be found at `${CATCH}`
 to successfully run the tests.
 
 To run the tests for CLD3-cli, one can execute `make test` in the root directory.
